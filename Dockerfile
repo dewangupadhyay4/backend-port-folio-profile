@@ -1,14 +1,30 @@
-# Use OpenJDK 17 as base image
-FROM openjdk:17-jdk-slim
+# ---------- Build Stage ----------
+FROM maven:3.9.3-eclipse-temurin-17 AS build
 
-# Set working directory inside container
 WORKDIR /app
 
-# Copy the built jar file into the container
-COPY target/backend-port-folio-profile-0.0.1-SNAPSHOT.jar app.jar
+# Copy pom.xml first to cache dependencies
+COPY pom.xml .
 
-# Expose the port your Spring Boot app runs on
+# Download dependencies
+RUN mvn dependency:go-offline
+
+# Copy source code
+COPY src ./src
+
+# Build the Spring Boot JAR (skip tests for faster build)
+RUN mvn clean package -DskipTests
+
+# ---------- Runtime Stage ----------
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy JAR from build stage
+COPY --from=build /app/target/backend-port-folio-profile-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port (Spring Boot default)
 EXPOSE 8080
 
-# Command to run the jar
+# Command to run the app
 ENTRYPOINT ["java","-jar","app.jar"]
