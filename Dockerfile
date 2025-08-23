@@ -3,16 +3,14 @@ FROM maven:3.9.3-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copy pom.xml first to cache dependencies
+# Copy pom.xml and download dependencies
 COPY pom.xml .
-
-# Download dependencies
 RUN mvn dependency:go-offline
 
 # Copy source code
 COPY src ./src
 
-# Build the Spring Boot JAR (skip tests for faster build)
+# Build the project (skip tests for faster build)
 RUN mvn clean package -DskipTests
 
 # ---------- Runtime Stage ----------
@@ -20,10 +18,10 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Copy JAR from build stage
-COPY --from=build /app/target/backend-portfolio-1.0.0-.jar.original app.jar
+# Copy the JAR from the build stage (works regardless of exact name)
+COPY --from=build /app/target/*.jar app.jar
 
-# Expose port (Spring Boot default)
+# Expose the port Spring Boot runs on
 EXPOSE 8080
 
 # Command to run the app
