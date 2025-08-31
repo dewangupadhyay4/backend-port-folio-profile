@@ -25,7 +25,7 @@ public class AboutController {
 	}
 	
 	
-	@GetMapping
+	@GetMapping("/")
 	public ResponseEntity<Map<String, Object>> get(){
 		return ResponseEntity.ok(Map.of("name","Dewang Upadhyay",
 				"title","Backend Engineer",
